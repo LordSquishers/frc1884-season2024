@@ -1,15 +1,26 @@
+// Copyright 2021-2024 FRC 6328
+// http://github.com/Mechanical-Advantage
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// version 3 as published by the Free Software Foundation or
+// available in the root directory of this project.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
 package frc.robot;
 
-import com.revrobotics.CANSparkBase;
-import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.auto.selector.AutoModeSelector;
-import frc.robot.core.util.CTREConfigs;
-import frc.robot.subsystems.Drivetrain;
-// import frc.robot.subsystems.PrototypeSubsystem;
-import frc.robot.util.SendableMotor;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -17,11 +28,9 @@ import frc.robot.util.SendableMotor;
  * the package after creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot {
-  public static CTREConfigs ctreConfigs;
-  CANSparkBase motor1, motor2, motor3, motor4;
-  SendableMotor motor1Sendable, motor2Sendable, motor3Sendable, motor4Sendable;
-  private final Field2d m_field = new Field2d();
+public class Robot extends LoggedRobot {
+  private Command autonomousCommand;
+  private RobotContainer robotContainer;
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -29,76 +38,67 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
-    // TODO put auto chooser here. make sure to use the one from
-    // robot/auto/selector/AutoModeSelector.java
-    ctreConfigs = new CTREConfigs();
+    // Record metadata
+    Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
+    Logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
+    Logger.recordMetadata("GitSHA", BuildConstants.GIT_SHA);
+    Logger.recordMetadata("GitDate", BuildConstants.GIT_DATE);
+    Logger.recordMetadata("GitBranch", BuildConstants.GIT_BRANCH);
+    switch (BuildConstants.DIRTY) {
+      case 0:
+        Logger.recordMetadata("GitDirty", "All changes committed");
+        break;
+      case 1:
+        Logger.recordMetadata("GitDirty", "Uncomitted changes");
+        break;
+      default:
+        Logger.recordMetadata("GitDirty", "Unknown");
+        break;
+    }
 
-    enableLiveWindowInTest(true);
-    var autoModeSelector = AutoModeSelector.getInstance();
-    OI.getInstance();
-    SmartDashboard.putData("field", m_field);
-    // motor1 =
-    //     new CANSparkFlex(
-    //         RobotMap.PrototypeMap.MOTOR_ID_1,
-    //         MotorType.kBrushless); // TODO: Make sure that it is the right Motor
-    // motor2 = new CANSparkFlex(RobotMap.PrototypeMap.MOTOR_ID_2, MotorType.kBrushless);
-    // // motor3 = new CANSparkMax(RobotMap.PrototypeMap.MOTOR_ID_3, MotorType.kBrushless);
-    // // motor4 = new CANSparkMax(RobotMap.PrototypeMap.MOTOR_ID_4, MotorType.kBrushless);
+    // Set up data receivers & replay source
+    switch (Constants.CURRENT_OPERATING_MODE) {
+      case REAL:
+        // Running on a real robot, log to a USB stick ("/U/logs")
+        Logger.addDataReceiver(new WPILOGWriter());
+        Logger.addDataReceiver(new NT4Publisher());
+        break;
 
-    // motor1Sendable = new SendableMotor(motor1);
-    // motor2Sendable = new SendableMotor(motor2);
+      case SIM:
+        // Running a physics simulator, log to NT
+        Logger.addDataReceiver(new NT4Publisher());
+        break;
 
-    // SendableRegistry.addLW(motor1Sendable, "Prototype", "Motor 1");
-    // SendableRegistry.addLW(motor2Sendable, "Prototype", "Motor 2");
-    // SendableRegistry.addLW(new SendableMotor(motor3), "Prototype", "Motor 3");
-    // SendableRegistry.addLW(new SendableMotor(motor4), "Prototype", "Motor 4");
+      case REPLAY:
+        // Replaying a log, set up replay source
+        setUseTiming(false); // Run as fast as possible
+        String logPath = LogFileUtil.findReplayLog();
+        Logger.setReplaySource(new WPILOGReader(logPath));
+        Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
+        break;
+    }
+
+    // See http://bit.ly/3YIzFZ6 for more information on timestamps in AdvantageKit.
+    // Logger.disableDeterministicTimestamps()
+
+    // Start AdvantageKit logger
+    Logger.start();
+
+    // Instantiate our RobotContainer. This will perform all our button bindings,
+    // and put our autonomous chooser on the dashboard.
+    robotContainer = new RobotContainer();
   }
 
-  /**
-   * This function is called every 20 ms, no matter the mode. Use this for items like diagnostics
-   * that you want ran during disabled, autonomous, teleoperated and test.
-   *
-   * <p>This runs after the mode specific periodic functions, but before LiveWindow and
-   * SmartDashboard integrated updating.
-   */
+  /** This function is called periodically during all modes. */
   @Override
   public void robotPeriodic() {
+    // Runs the Scheduler. This is responsible for polling buttons, adding
+    // newly-scheduled commands, running already-scheduled commands, removing
+    // finished or interrupted commands, and running subsystem periodic() methods.
+    // This must be called from the robot's periodic block in order for anything in
+    // the Command-based framework to work.
     CommandScheduler.getInstance().run();
-    m_field.setRobotPose(Drivetrain.getInstance().getPose());
-
-    // if (motor1Sendable.openLoopEnabled) motor1.set(motor1Sendable.m_speed);
-    // else motor1.set(0.0);
-    // if (motor2Sendable.openLoopEnabled) motor2.set(motor2Sendable.m_speed);
-    // else motor2.set(0.0);
   }
-
-  /**
-   * This autonomous (along with the chooser code above) shows how to select between different
-   * autonomous modes using the dashboard. The sendable chooser code works with the Java
-   * SmartDashboard. If you prefer the LabVIEW Dashboard, remove all of the chooser code and
-   * uncomment the getString line to get the auto name from the text box below the Gyro
-   *
-   * <p>You can add additional auto modes by adding additional comparisons to the switch structure
-   * below with additional strings. If using the SendableChooser make sure to add them to the
-   * chooser code above as well.
-   */
-  @Override
-  public void autonomousInit() {}
-
-  /** This function is called periodically during autonomous. */
-  @Override
-  public void autonomousPeriodic() {}
-
-  /** This function is called once when teleop is enabled. */
-  @Override
-  public void teleopInit() {
-    CommandScheduler.getInstance().cancelAll();
-    OI.getInstance().registerCommands();
-  }
-
-  /** This function is called periodically during operator control. */
-  @Override
-  public void teleopPeriodic() {}
 
   /** This function is called once when the robot is disabled. */
   @Override
@@ -108,49 +108,47 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledPeriodic() {}
 
+  /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
+  @Override
+  public void autonomousInit() {
+    autonomousCommand = robotContainer.getAutonomousCommand();
+
+    // schedule the autonomous command (example)
+    if (autonomousCommand != null) {
+      autonomousCommand.schedule();
+    }
+  }
+
+  /** This function is called periodically during autonomous. */
+  @Override
+  public void autonomousPeriodic() {}
+
+  /** This function is called once when teleop is enabled. */
+  @Override
+  public void teleopInit() {
+    // This makes sure that the autonomous stops running when
+    // teleop starts running. If you want the autonomous to
+    // continue until interrupted by another command, remove
+    // this line or comment it out.
+    if (autonomousCommand != null) {
+      autonomousCommand.cancel();
+    }
+  }
+
+  /** This function is called periodically during operator control. */
+  @Override
+  public void teleopPeriodic() {}
+
   /** This function is called once when test mode is enabled. */
   @Override
   public void testInit() {
-    // motor1 = new CANSparkMax(RobotMap.PrototypeMap.MOTOR_ID_1, MotorType.kBrushless);
-    // motor2 = new CANSparkMax(RobotMap.PrototypeMap.MOTOR_ID_2, MotorType.kBrushless);
-    // motor3 = new CANSparkMax(RobotMap.PrototypeMap.MOTOR_ID_3, MotorType.kBrushless);
-    // motor4 = new CANSparkMax(RobotMap.PrototypeMap.MOTOR_ID_4, MotorType.kBrushless);
-
-    // SendableRegistry.addLW(new SendableMotor(motor1), "Prototype", "Motor 1");
-    // SendableRegistry.addLW(new SendableMotor(motor2), "Prototype", "Motor 2");
-    // SendableRegistry.addLW(new SendableMotor(motor3), "Prototype", "Motor 3");
-    // SendableRegistry.addLW(new SendableMotor(motor4), "Prototype", "Motor 4");
+    // Cancels all running commands at the start of test mode.
+    CommandScheduler.getInstance().cancelAll();
   }
 
   /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {
-    // if (motor1Sendable.openLoopEnabled) motor1.set(motor1Sendable.m_speed);
-    // else motor1.set(0.0);
-
-    // if (motor2Sendable.openLoopEnabled) motor2.set(motor2Sendable.m_speed);
-    // else motor2.set(0.0);
-
-    // if (motor3Sendable.openLoopEnabled) motor3.set(motor3Sendable.m_speed);
-    // else motor3.set(0.0);
-
-    // if (motor4Sendable.openLoopEnabled) motor4.set(motor4Sendable.m_speed);
-    // else motor4.set(0.0);
-
-    /*ShuffleboardTab tab = Shuffleboard.getTab("Shooter");
-    GenericEntry shooterEnable = tab.add("Shooter Enable", false).getEntry();
-
-    // Command Example assumed to be in a PIDSubsystem
-    new NetworkButton((BooleanSubscriber) shooterEnable).onTrue(new InstantCommand(PrototypeSubsystem.getInstance()::enable));
-
-    // Timed Robot Example
-    if (shooterEnable.getBoolean(false)) {
-        // Calculates the output of the PID algorithm based on the sensor reading
-        // and sends it to a motor
-        PrototypeSubsystem.getInstance().runTo(1.0)
-                .onlyIf(() -> shooterEnable.getBoolean(false));
-    }*/
-  }
+  public void testPeriodic() {}
 
   /** This function is called once when the robot is first started up. */
   @Override
