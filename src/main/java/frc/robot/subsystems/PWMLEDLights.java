@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PWM;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -14,17 +13,16 @@ import static frc.robot.util.BlinkinUtils.ColorPatterns.*;
 
 public class PWMLEDLights extends SubsystemBase {
     private static PWMLEDLights instance;
-
-    public static PWMLEDLights getInstance() {
-        if(instance == null) instance = new PWMLEDLights();
-        return instance;
-    }
-
-    private Spark m_blinkin;
+    private final Spark m_blinkin;
 
     //@param pwmPort  The PWM port the Blinkin is connected to.
     public PWMLEDLights() {
-      m_blinkin = new Spark(RobotMap.LEDMap.BLINKIN_PWM_PORT);
+        m_blinkin = new Spark(RobotMap.LEDMap.BLINKIN_PWM_PORT);
+    }
+
+    public static PWMLEDLights getInstance() {
+        if (instance == null) instance = new PWMLEDLights();
+        return instance;
     }
 
     public void setColor(BlinkinUtils.ColorPatterns pattern) {

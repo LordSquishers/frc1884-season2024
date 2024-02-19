@@ -1,27 +1,20 @@
 package frc.robot.subsystems;
 
-import java.util.function.DoubleSupplier;
-
 import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotMap;
 
+import java.util.function.DoubleSupplier;
+
 public class Climber extends SubsystemBase {
     private static Climber instance;
-
-    public static Climber getInstance() {
-        if(instance == null) instance = new Climber();
-        return instance;
-    }
-
-    private CANSparkBase leaderMotor, followerMotor;
+    private final CANSparkBase leaderMotor;
+    private final CANSparkBase followerMotor;
 
     private Climber() {
         leaderMotor = new CANSparkMax(RobotMap.ClimberMap.FOLLOWER, MotorType.kBrushless);
@@ -44,14 +37,18 @@ public class Climber extends SubsystemBase {
         //followerMotor.setInverted(true);
     }
 
+    public static Climber getInstance() {
+        if (instance == null) instance = new Climber();
+        return instance;
+    }
+
     public Command run(DoubleSupplier power) {
-        return new InstantCommand(()->leaderMotor.set(power.getAsDouble()/5.0), this);
+        return new InstantCommand(() -> leaderMotor.set(power.getAsDouble() / 5.0), this);
     }
 
 
-
     @Override
-    public void initSendable(SendableBuilder builder){
+    public void initSendable(SendableBuilder builder) {
         builder.addDoubleProperty("Climber Power", () -> leaderMotor.get(), (s) -> leaderMotor.set(s));
 
     }

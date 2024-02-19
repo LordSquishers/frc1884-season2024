@@ -6,43 +6,43 @@ import frc.robot.core.util.MathUtils;
 import frc.robot.core.util.SimpleDeadBand;
 
 public class GameController extends Joystick {
-  public static final double DEADZONE = 0.1;
-  private static final MathUtils.TransformPresets function = MathUtils.TransformPresets.TRANSFORM;
+    public static final double DEADZONE = 0.1;
+    private static final MathUtils.TransformPresets function = MathUtils.TransformPresets.TRANSFORM;
 
-  private ButtonMap map;
+    private final ButtonMap map;
 
-  public GameController(int gamepadPort, ButtonMap map) {
-    super(gamepadPort);
-    this.map = map;
-  }
+    public GameController(int gamepadPort, ButtonMap map) {
+        super(gamepadPort);
+        this.map = map;
+    }
 
-  public JoystickButton getButton(ButtonMap.Button button) {
-    return new JoystickButton(this, map.buttonMap().get(button));
-  }
+    public JoystickButton getButton(ButtonMap.Button button) {
+        return new JoystickButton(this, map.buttonMap().get(button));
+    }
 
-  public JoystickButton getDpad(ButtonMap.Dpad dpad) {
-    return new JoystickButton(this, map.dpadMap().get(dpad));
-  }
+    public JoystickButton getDpad(ButtonMap.Dpad dpad) {
+        return new JoystickButton(this, map.dpadMap().get(dpad));
+    }
 
-  public double getAxis(ButtonMap.Axis axis) {
-    double value = this.getRawAxis(map.axisMap().get(axis));
-    // System.out.println(value);
-    // try {
-    //    return this.getRawAxis(0);
-    // } catch (Exception e) {
-    //   // TODO: handle exception
-    //   System.out.println(e);
-    // }
+    public double getAxis(ButtonMap.Axis axis) {
+        double value = this.getRawAxis(map.axisMap().get(axis));
+        // System.out.println(value);
+        // try {
+        //    return this.getRawAxis(0);
+        // } catch (Exception e) {
+        //   // TODO: handle exception
+        //   System.out.println(e);
+        // }
 
-    return SimpleDeadBand.signSquare(SimpleDeadBand.deadband(value, DEADZONE));
-    // return function.on(value, DEADZONE);
-  }
+        return SimpleDeadBand.signSquare(SimpleDeadBand.deadband(value, DEADZONE));
+        // return function.on(value, DEADZONE);
+    }
 
-  public double getTrigger(ButtonMap.Trigger trigger) {
-    return this.getRawAxis(map.triggerMap().get(trigger));
-  }
+    public double getTrigger(ButtonMap.Trigger trigger) {
+        return this.getRawAxis(map.triggerMap().get(trigger));
+    }
 
-  public int getDpadAngle() {
-    return this.getPOV();
-  }
+    public int getDpadAngle() {
+        return this.getPOV();
+    }
 }

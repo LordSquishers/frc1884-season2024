@@ -1,46 +1,21 @@
 package frc.robot.subsystems;
 
-import java.util.Optional;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.Config.Subsystems;
 import frc.robot.RobotMap.IntakeMap;
 
+import java.util.Optional;
+
 public class Intake extends SubsystemBase {
     private static Intake instance;
-
-    public static Intake getInstance() {
-        if (instance == null) {
-            instance = new Intake();
-        }
-        return instance;
-    }
-
-    public static enum IntakeDirection {
-        FORWARD, REVERSE, STOPPED, SLOW
-    }
-
-    public static enum IntakeStatus {
-        EMPTY, LOADED
-    }
-
-    private CANSparkMax intake, feeder;
-
-    private Optional<DigitalInput> intakeSensor;
-    
-
+    private final CANSparkMax intake;
+    private final CANSparkMax feeder;
+    private final Optional<DigitalInput> intakeSensor;
     private IntakeStatus status = IntakeStatus.EMPTY;
     private IntakeDirection direction = IntakeDirection.STOPPED;
 
@@ -76,6 +51,13 @@ public class Intake extends SubsystemBase {
         tab.add(this);
     }
 
+    public static Intake getInstance() {
+        if (instance == null) {
+            instance = new Intake();
+        }
+        return instance;
+    }
+
     private void setSpeed(double intakeSpeed, double feederSpeed) {
         intake.set(intakeSpeed);
         feeder.set(intakeSpeed);
@@ -83,7 +65,7 @@ public class Intake extends SubsystemBase {
 
     /**
      * Sets the intake state to the given direction
-     * 
+     *
      * @param direction the direction to set the intake to
      * @return the command to set the intake state
      */
@@ -131,7 +113,7 @@ public class Intake extends SubsystemBase {
         }
 
         updateIntake();
-        
+
     }
 
     private void updateIntake() {
@@ -146,14 +128,22 @@ public class Intake extends SubsystemBase {
         }
     }
 
-    public void toggleIntake(boolean isOn) { 
-        if(isOn) direction = IntakeDirection.FORWARD;
-        else if(!isOn) direction = IntakeDirection.STOPPED;
+    public void toggleIntake(boolean isOn) {
+        if (isOn) direction = IntakeDirection.FORWARD;
+        else if (!isOn) direction = IntakeDirection.STOPPED;
     }
 
     @Override
-    public void initSendable(SendableBuilder builder){
-        builder.addBooleanProperty("Intake On", () -> (IntakeDirection.FORWARD == direction), 
-        (d) -> toggleIntake(d));
+    public void initSendable(SendableBuilder builder) {
+        builder.addBooleanProperty("Intake On", () -> (IntakeDirection.FORWARD == direction),
+                (d) -> toggleIntake(d));
+    }
+
+    public enum IntakeDirection {
+        FORWARD, REVERSE, STOPPED, SLOW
+    }
+
+    public enum IntakeStatus {
+        EMPTY, LOADED
     }
 }

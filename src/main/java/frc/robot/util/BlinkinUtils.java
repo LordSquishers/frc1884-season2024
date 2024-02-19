@@ -2,8 +2,6 @@ package frc.robot.util;
 
 import frc.robot.RobotMap;
 
-import java.math.BigDecimal;
-
 public class BlinkinUtils {
     public enum ColorPatterns {
         /*
@@ -129,7 +127,7 @@ public class BlinkinUtils {
         public double get() {
             return RobotMap.LEDMap.BLINKIN_ON_SPARK
                     ? (ordinal() * 0.02) - 0.99
-                    : (ordinal()*10 + 1005);
+                    : (ordinal() * 10 + 1005);
         }
 
         public ColorPatterns nextPattern() {

@@ -1,139 +1,134 @@
 package frc.robot.layout;
 
-import java.util.function.DoubleSupplier;
-
-import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.core.util.controllers.ButtonMap.Axis;
 import frc.robot.core.util.controllers.ButtonMap.Button;
-import frc.robot.core.util.controllers.BoardController;
 import frc.robot.core.util.controllers.GameController;
 
 public class BoardOperatorMap extends OperatorMap {
-  public BoardOperatorMap(GameController controller) {
-    super(controller);
-  }
+    public BoardOperatorMap(GameController controller) {
+        super(controller);
+    }
 
-  @Override
-  JoystickButton getIntakeButton() {
-    return controller.getButton(Button.BUTTON_X);
-  }
+    @Override
+    JoystickButton getIntakeButton() {
+        return controller.getButton(Button.BUTTON_X);
+    }
 
-  @Override
-  JoystickButton getIntakeReverseButton() {
-    return controller.getButton(Button.BUTTON_Y);
-  }
+    @Override
+    JoystickButton getIntakeReverseButton() {
+        return controller.getButton(Button.BUTTON_Y);
+    }
 
-  @Override
-  JoystickButton getIntakeStopButton() {
-    return controller.getButton(Button.BUTTON_EXTRA_1);
-  }
+    @Override
+    JoystickButton getIntakeStopButton() {
+        return controller.getButton(Button.BUTTON_EXTRA_1);
+    }
 
-  @Override
-  JoystickButton getShootButton() {
-    return controller.getButton(Button.BUTTON_A);
-  }
+    @Override
+    JoystickButton getShootButton() {
+        return controller.getButton(Button.BUTTON_A);
+    }
 
-  @Override
-  JoystickButton getShootAmpButton() {
-    return controller.getButton(Button.BUTTON_B);
-  }
+    @Override
+    JoystickButton getShootAmpButton() {
+        return controller.getButton(Button.BUTTON_B);
+    }
 
-  @Override
-  JoystickButton getAmpAlignButton() {
-    return controller.getButton(Button.BUTTON_LEFT_BUMPER);
-  }
+    @Override
+    JoystickButton getAmpAlignButton() {
+        return controller.getButton(Button.BUTTON_LEFT_BUMPER);
+    }
 
-  @Override
-  double getManualPivotAxis() {
-    return controller.getAxis(Axis.AXIS_LEFT_Y);
-  }
-  @Override
-  JoystickButton getManualShootButton() {
-    return controller.getButton(Button.BUTTON_A);
-  }
+    @Override
+    double getManualPivotAxis() {
+        return controller.getAxis(Axis.AXIS_LEFT_Y);
+    }
 
-  @Override
-  JoystickButton getClimbSequenceButton()
-  {
-    return controller.getButton(Button.BUTTON_TOUCHPAD);
-  }
+    @Override
+    JoystickButton getManualShootButton() {
+        return controller.getButton(Button.BUTTON_A);
+    }
 
-  @Override
-  JoystickButton getLEDPatternOneButton() {
-    return controller.getButton(Button.BUTTON_A);
-  }
+    @Override
+    JoystickButton getClimbSequenceButton() {
+        return controller.getButton(Button.BUTTON_TOUCHPAD);
+    }
 
-  @Override
-  JoystickButton getLEDPatternTwoButton() {
-    return controller.getButton(Button.BUTTON_B);
-  }
+    @Override
+    JoystickButton getLEDPatternOneButton() {
+        return controller.getButton(Button.BUTTON_A);
+    }
 
-  @Override
-  JoystickButton getLEDPatternOffButton() {
-    return controller.getButton(Button.BUTTON_EXTRA_2);
-  }
+    @Override
+    JoystickButton getLEDPatternTwoButton() {
+        return controller.getButton(Button.BUTTON_B);
+    }
 
-  @Override
-  JoystickButton getLEDPatternThreeButton() {
-    return controller.getButton(Button.BUTTON_X);
-  }
+    @Override
+    JoystickButton getLEDPatternOffButton() {
+        return controller.getButton(Button.BUTTON_EXTRA_2);
+    }
 
-  @Override
-  JoystickButton getLEDPatternFourButton() {
-    return controller.getButton(Button.BUTTON_Y);
-  }
+    @Override
+    JoystickButton getLEDPatternThreeButton() {
+        return controller.getButton(Button.BUTTON_X);
+    }
 
-  @Override
-  JoystickButton getLEDPatternFiveButton() {
-    return controller.getButton(Button.BUTTON_LEFT_BUMPER);
-  }
+    @Override
+    JoystickButton getLEDPatternFourButton() {
+        return controller.getButton(Button.BUTTON_Y);
+    }
 
-  @Override
-  double getLEDAxis1() {
-    return controller.getAxis(Axis.AXIS_LEFT_X);
-  }
+    @Override
+    JoystickButton getLEDPatternFiveButton() {
+        return controller.getButton(Button.BUTTON_LEFT_BUMPER);
+    }
 
-  
-  @Override
-  double getLEDAxis2() {
-    return controller.getAxis(Axis.AXIS_LEFT_Y);
-  }
+    @Override
+    double getLEDAxis1() {
+        return controller.getAxis(Axis.AXIS_LEFT_X);
+    }
 
-  @Override
-  JoystickButton getArcButton() {
-    return controller.getButton(Button.BUTTON_SHARE);
-  }
 
-  @Override
-  JoystickButton getTrapButton() {
-    return controller.getButton(Button.BUTTON_START);
-  }
+    @Override
+    double getLEDAxis2() {
+        return controller.getAxis(Axis.AXIS_LEFT_Y);
+    }
 
-  @Override
-  JoystickButton getStageAlignButton() {
-    return controller.getButton(Button.BUTTON_OPTIONS);
-  }
+    @Override
+    JoystickButton getArcButton() {
+        return controller.getButton(Button.BUTTON_SHARE);
+    }
 
-  @Override
-  JoystickButton getAmplifyButton() {
-    return controller.getButton(Button.BUTTON_EXTRA_1);
-  }
+    @Override
+    JoystickButton getTrapButton() {
+        return controller.getButton(Button.BUTTON_START);
+    }
 
-  @Override
-  JoystickButton getCoopButton() {
-    return controller.getButton(Button.BUTTON_EXTRA_2);
-  }
+    @Override
+    JoystickButton getStageAlignButton() {
+        return controller.getButton(Button.BUTTON_OPTIONS);
+    }
 
-  @Override
-  Trigger getPivotRaiseButton(){
-    return new Trigger(() -> controller.getAxis(Axis.AXIS_LEFT_X) > 0.9);
-  }
+    @Override
+    JoystickButton getAmplifyButton() {
+        return controller.getButton(Button.BUTTON_EXTRA_1);
+    }
 
-  @Override
-  Trigger getPivotLowerButton(){
-    return new Trigger(() -> controller.getAxis(Axis.AXIS_LEFT_X) > -0.9);
-  }
+    @Override
+    JoystickButton getCoopButton() {
+        return controller.getButton(Button.BUTTON_EXTRA_2);
+    }
+
+    @Override
+    Trigger getPivotRaiseButton() {
+        return new Trigger(() -> controller.getAxis(Axis.AXIS_LEFT_X) > 0.9);
+    }
+
+    @Override
+    Trigger getPivotLowerButton() {
+        return new Trigger(() -> controller.getAxis(Axis.AXIS_LEFT_X) > -0.9);
+    }
 }

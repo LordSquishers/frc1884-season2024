@@ -6,72 +6,60 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.RepeatCommand;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.*;
 import frc.robot.RobotMap;
 import frc.robot.util.RunForSecondsCommand;
 
 import java.util.function.DoubleSupplier;
-import java.util.stream.IntStream;
-
-import static frc.robot.util.BlinkinUtils.ColorPatterns.BLACK;
 
 public class AddressableLEDLights extends SubsystemBase {
     private static AddressableLEDLights instance;
-    public static AddressableLEDLights getInstance() {
-        if(instance == null) instance = new AddressableLEDLights();
-        return instance;
-    }
-
-    private AddressableLED m_led;
-    private AddressableLEDBuffer m_ledBuffer;
+    private final AddressableLED m_led;
+    private final AddressableLEDBuffer m_ledBuffer;
     private int m_rainbowFirstPixelHue = 0;
     private int currLED, direction, hue;
-    private int z =1;
-    private int x =0;
-    private DigitalInput feederSensor;
+    private int z = 1;
+    private int x = 0;
     private boolean c;
-
     private AddressableLEDLights() {
         m_led = new AddressableLED(RobotMap.LEDMap.BLINKIN_PWM_PORT);
         m_led.setLength(RobotMap.LEDMap.NUMBER_LEDS);
         m_ledBuffer = new AddressableLEDBuffer(RobotMap.LEDMap.NUMBER_LEDS);
         m_led.setData(m_ledBuffer);
         m_led.start();
-        feederSensor = new DigitalInput(4);
+    }
+
+    public static AddressableLEDLights getInstance() {
+        if (instance == null) instance = new AddressableLEDLights();
+        return instance;
     }
 
     public Command setValue(DoubleSupplier confidence, DoubleSupplier confidence2) {
         return new RunCommand(
-            ()->{
-                for(int i = 0; i < m_ledBuffer.getLength(); i++) {
-                    m_ledBuffer.setHSV(
-                        i, 
-                        120, 
-                        (int) (127 + confidence2.getAsDouble() * 127),
-                        (int) (127 + confidence.getAsDouble() * 127)
-                    );
+                () -> {
+                    for (int i = 0; i < m_ledBuffer.getLength(); i++) {
+                        m_ledBuffer.setHSV(
+                                i,
+                                120,
+                                (int) (127 + confidence2.getAsDouble() * 127),
+                                (int) (127 + confidence.getAsDouble() * 127)
+                        );
+                    }
+                    m_rainbowFirstPixelHue++;
+                    m_rainbowFirstPixelHue %= 180;
+                    m_led.setData(m_ledBuffer);
+                    m_led.start();
                 }
-                m_rainbowFirstPixelHue++;
-                m_rainbowFirstPixelHue %= 180;
-                m_led.setData(m_ledBuffer);
-                m_led.start();
-            }
-        , this);
+                , this);
     }
 
     private void setColor(Color color) {
-        for(int i = 0; i < m_ledBuffer.getLength(); i++) {
+        for (int i = 0; i < m_ledBuffer.getLength(); i++) {
             m_ledBuffer.setRGB(
-                i, 
-                (int) color.green * 255, 
-                (int) color.red * 255, 
-                (int) color.blue * 255
+                    i,
+                    (int) color.green * 255,
+                    (int) color.red * 255,
+                    (int) color.blue * 255
             );
         }
         m_led.setData(m_ledBuffer);
@@ -97,22 +85,31 @@ public class AddressableLEDLights extends SubsystemBase {
             m_led.start();
         }, this));
     }
+
     public Command setDecreasing() {
-        return new RepeatCommand(new InstantCommand(()->{
-            for(int i = 0; i < m_ledBuffer.getLength(); i++) {
+        return new RepeatCommand(new InstantCommand(() -> {
+            for (int i = 0; i < m_ledBuffer.getLength(); i++) {
                 m_ledBuffer.setHSV(i, 0, 0, 0);
                 // m_ledBuffer.setHSV(i+1, 0, 0, 0);
                 // m_ledBuffer.setHSV(i+2, 0, 0, 0);
             }
-            if(z>=270){z=0;currLED=0;direction=1;}
+            if (z >= 270) {
+                z = 0;
+                currLED = 0;
+                direction = 1;
+            }
             // while(z>=x){
             //     m_ledBuffer.setHSV(currLED+x, hue, 255, 255); 
             //     x++;
             // }
-            while(z>=x){
-                if(c){
-                m_ledBuffer.setHSV(currLED+x, 0, 255, 255); c=false;}
-                else { m_ledBuffer.setHSV(currLED+x, 60, 255, 255);c=true;}
+            while (z >= x) {
+                if (c) {
+                    m_ledBuffer.setHSV(currLED + x, 0, 255, 255);
+                    c = false;
+                } else {
+                    m_ledBuffer.setHSV(currLED + x, 60, 255, 255);
+                    c = true;
+                }
                 x++;
             }
 
@@ -130,40 +127,41 @@ public class AddressableLEDLights extends SubsystemBase {
             //     }
             //     c=true;
             // }
-            x=0;
-            hue+=+5;
+            x = 0;
+            hue += +5;
             hue %= 180;
             currLED += direction;
-            if(currLED == m_ledBuffer.getLength()-1-z) direction = -1;
-            if(currLED == 0) direction = 1;
-            if(currLED%3==0)z++;
+            if (currLED == m_ledBuffer.getLength() - 1 - z) direction = -1;
+            if (currLED == 0) direction = 1;
+            if (currLED % 3 == 0) z++;
             m_led.setData(m_ledBuffer);
-            
+
         }, this).andThen(new WaitCommand(0.0)));
     }
 
     public Command setRedBlack() {
-        return new RepeatCommand(new InstantCommand(()->{
-            for(int i = 0; i < m_ledBuffer.getLength(); i++) {
-                m_ledBuffer.setLED(i, (currLED + i) % 2 == 0 ? Color.kRed: Color.kBlack);
+        return new RepeatCommand(new InstantCommand(() -> {
+            for (int i = 0; i < m_ledBuffer.getLength(); i++) {
+                m_ledBuffer.setLED(i, (currLED + i) % 2 == 0 ? Color.kRed : Color.kBlack);
             }
             currLED += 1;
             m_led.setData(m_ledBuffer);
             m_led.start();
         }).andThen(new WaitCommand(0.1)));
     }
+
     public Command setRedDarkRed() {
         return new RepeatCommand(new InstantCommand(() -> {
-            if(c){
+            if (c) {
                 setColor(Color.kRed);
-                c=false;
-            }
-            else {
+                c = false;
+            } else {
                 setColor(Color.kYellow);
-                c=true;
+                c = true;
             }
         }, this));
     }
+
     public Command setColorCommand(Color color) {
         return new RunCommand(() -> setColor(color), this);
     }
@@ -179,16 +177,6 @@ public class AddressableLEDLights extends SubsystemBase {
 
     public Command disableCommand() {
         return setColorCommand(Color.kBlack);
-    }
-    
-    public Command checkBeam() {
-        return new RunCommand(()->{
-        if(feederSensor.get()){
-            setColor(Color.kGreenYellow);
-        }
-        else setColor(Color.kRed);
-    },this);
-
     }
 
     @Override

@@ -1,6 +1,8 @@
 package frc.robot.util;
 
-import edu.wpi.first.wpilibj2.command.*;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 /**
  * A command composition that runs a set of commands in parallel, ending when the specified
@@ -16,7 +18,8 @@ public final class RunForSecondsCommand extends ParallelDeadlineGroup {
      * Creates a new RunForSecondsCommand. The given commands will be executed simultaneously,
      * and will "race to the finish" - the first command to finish ends the entire command, with
      * all other commands being interrupted.
-     * @param time the time (in seconds) that each command should run for
+     *
+     * @param time     the time (in seconds) that each command should run for
      * @param commands the command(s) to run as long as the timer is running. Commands that
      *                 complete instantly will NOT be rescheduled.
      */
